@@ -1,0 +1,115 @@
+MODULE main
+VAR
+    exp : 0..3;
+    state : {on,run,stop,off};
+    proc : 0..16;
+    e1_1 : 0..1;
+    e1_2 : 0..1;
+    e2_1 : 0..1;
+    e2_2 : 0..1;
+    e3_1 : 0..1;
+    e3_2 : 0..1;
+    result : {"1 & 5","2","7","8","9","10","11 & 12",normal,error,no_result,ab_inhibitor,FDP};
+
+ASSIGN
+    init(state) := off;
+    init(proc) := 0;
+    init(exp) := 0;
+    init(e1_1) := 0;
+    init(e1_2) := 0;
+    init(e2_1) := 0;
+    init(e2_2) := 0;
+    init(e3_1) := 0;
+    init(e3_2) := 0;
+    init(result) := no_result;
+
+    next(state) :=
+        case
+            (state = off) : {on,off};
+            (state = on) : {on,run,off};
+            (state = run) & (exp = 0) : stop;
+            (state = run) & (exp != 0) : run;
+            (state = stop) : {off,on};
+        esac;
+    
+    next(e1_1) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e1_1;
+        esac;
+    next(e1_2) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e1_2;
+        esac;
+    next(e2_1) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e2_1;
+        esac;
+    next(e2_2) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e2_2;
+        esac;
+    next(e3_1) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e3_1;
+        esac;
+    next(e3_2) := 
+        case
+            (state = on) : {0,1};
+            TRUE : e3_2;
+        esac;
+    
+    next(exp) :=
+        case
+            (state != run) : 0;
+            (exp = 0) : 1;
+            (exp = 1) & (e1_1 = 0) & (e1_2 = 0) : 0;
+            (exp = 1) : 2;
+            (exp = 2) & (e1_1 = 1) & (e1_2 = 0) : 0;
+            (exp = 2) & (e2_1 = 0) & (e2_2 = 1) : 0;
+            (exp = 2) & (e2_1 = 1) & (e2_2 = 1) : 0;
+            (exp = 2) : 3;
+            (exp = 3) : 0;
+        esac;
+
+    next(proc) :=
+        case
+            (exp = 0) & (state = run): proc;
+            (state != run) : 0;
+            (exp = 1) & (e1_1 = 0) & (e1_2 = 0) : 1;
+            (exp = 1) & (e1_1 = 1) & (e1_2 = 0) : 2;
+            (exp = 1) & (e1_1 = 0) & (e1_2 = 1) : 3;
+            (exp = 1) & (e1_1 = 1) & (e1_2 = 1) : 4;
+            (exp = 2) & (e2_1 = 0) & (e2_2 = 1) : 5;
+            (exp = 2) & (e2_1 = 1) & (e2_2 = 1) : 6;
+            (exp = 2) & (proc = 2) & (e2_1 = 0) & (e2_2 = 0) : 7;
+            (exp = 2) & (proc = 3) & (e2_1 = 0) & (e2_2 = 0) : 8;
+            (exp = 2) & (proc = 4) & (e2_1 = 0) & (e2_2 = 0) : 9;
+            (exp = 3) & (proc = 8) & (e3_1 = 0) & (e3_2 = 1) : 10;
+            (exp = 3) & (proc = 8) & (e3_1 = 1) & (e3_2 = 0) : 11;
+            (exp = 3) & (proc = 8) & (e3_1 = 0) & (e3_2 = 0) : 12;
+            (exp = 3) & (proc = 9) & (e3_1 = 0) & (e3_2 = 1) : 13;
+            (exp = 3) & (proc = 9) & (e3_1 = 1) & (e3_2 = 0) : 14;
+            (exp = 3) & (proc = 9) & (e3_1 = 1) & (e3_2 = 1) : 14;
+            TRUE : 16;
+        esac;
+
+    next(result) :=
+        case
+            (state != stop) : no_result;
+            (proc = 5) : "ab_inhibitor";
+            (proc = 6) : "FDP";
+            (proc = 7) : "7";
+            (proc = 10) : "8";
+            (proc = 11) : "9";
+            (proc = 12) : "11 & 12";
+            (proc = 13) : "1 & 5";
+            (proc = 14) : "10";
+            (proc = 15) : "2";
+            (proc = 16) : error;
+            TRUE : normal;
+        esac;
